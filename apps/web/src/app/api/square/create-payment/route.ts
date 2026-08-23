@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@misc-sales-app/db";
+import { prisma } from "@snaply-app/db";
 import { computeCheckoutTotals, toSquareAmountCents } from "@/lib/pricing";
 import { emailSellerOfSale, recordSaleNotification } from "@/lib/notifications";
 

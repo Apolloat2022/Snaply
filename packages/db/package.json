@@ -1,5 +1,5 @@
 {
-  "name": "@misc-sales-app/db",
+  "name": "@snaply-app/db",
   "version": "0.1.0",
   "private": true,
   "main": "index.ts",

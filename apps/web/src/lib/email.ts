@@ -1,5 +1,5 @@
 const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
-const NOTIFICATIONS_FROM_EMAIL = process.env.NOTIFICATIONS_FROM_EMAIL ?? "orders@misc-sales-app.example";
+const NOTIFICATIONS_FROM_EMAIL = process.env.NOTIFICATIONS_FROM_EMAIL ?? "orders@snaply-app.example";
 
 interface SendEmailParams {
   to: string;

@@ -9,7 +9,7 @@ in the order you'd hit it.
 This folder is its own git repo now (`main` branch, no remote set):
 
 ```
-cd C:\Projects\APPS\Misc-sales-app
+cd C:\Projects\APPS\snaply-app
 git remote add origin <your-new-github-repo-url>
 git push -u origin main
 ```

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@misc-sales-app/db";
+import { prisma } from "@snaply-app/db";
 
 interface PatchBody {
   read: boolean;

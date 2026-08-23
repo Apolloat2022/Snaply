@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@misc-sales-app/db";
+import { prisma } from "@snaply-app/db";
 import ListingCheckoutSection from "@/components/checkout/ListingCheckoutSection";
 import DashboardLink from "@/components/dashboard/DashboardLink";
 import { CURRENT_BUYER_ID } from "@/lib/auth";

@@ -1,5 +1,5 @@
 {
-  "name": "misc-sales-app",
+  "name": "snaply-app",
   "private": true,
   "scripts": {
     "dev": "turbo run dev",

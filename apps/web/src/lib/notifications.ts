@@ -1,4 +1,4 @@
-import type { Prisma } from "@misc-sales-app/db";
+import type { Prisma } from "@snaply-app/db";
 import { sendEmail } from "./email";
 
 interface SaleNotificationParams {

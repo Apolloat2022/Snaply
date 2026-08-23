@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Misc Sales App",
+  title: "Snaply",
   description: "Snap a photo, let AI price it, publish in seconds.",
 };
 

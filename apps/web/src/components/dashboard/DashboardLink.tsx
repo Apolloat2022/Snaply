@@ -1,4 +1,4 @@
-import { prisma } from "@misc-sales-app/db";
+import { prisma } from "@snaply-app/db";
 import { CURRENT_SELLER_ID } from "@/lib/auth";
 
 /** Server component — queries the unread count directly, so it can be dropped

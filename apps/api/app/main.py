@@ -6,7 +6,7 @@ from app.routers import analyze
 
 settings = get_settings()
 
-app = FastAPI(title="Misc Sales App — AI Pricing Engine", version="0.1.0")
+app = FastAPI(title="Snaply — AI Pricing Engine", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

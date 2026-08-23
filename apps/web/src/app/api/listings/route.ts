@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, ItemCondition as PrismaItemCondition } from "@misc-sales-app/db";
+import { prisma, ItemCondition as PrismaItemCondition } from "@snaply-app/db";
 import type { ComparableListing, ItemCondition } from "@/types/listing";
 
 interface CreateListingBody {

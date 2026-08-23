@@ -1,4 +1,4 @@
-import { prisma } from "@misc-sales-app/db";
+import { prisma } from "@snaply-app/db";
 import NotificationList from "@/components/dashboard/NotificationList";
 import { CURRENT_SELLER_ID } from "@/lib/auth";
 import type { SellerNotification } from "@/types/notification";

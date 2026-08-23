@@ -1,5 +1,5 @@
 {
-  "name": "@misc-sales-app/web",
+  "name": "@snaply-app/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,7 +13,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "@supabase/supabase-js": "^2.45.0",
-    "@misc-sales-app/db": "workspace:*"
+    "@snaply-app/db": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.5.0",

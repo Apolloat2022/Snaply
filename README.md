@@ -1,4 +1,4 @@
-# Misc Sales App — AI-Driven Zero-Friction Marketplace
+# Snaply — AI-Driven Zero-Friction Marketplace
 
 Snap a photo, let an AI vision + pricing agent draft the listing, publish, get paid.
 
@@ -12,7 +12,7 @@ Snap a photo, let an AI vision + pricing agent draft the listing, publish, get p
 ## Monorepo layout
 
 ```
-Misc-sales-app/
+snaply-app/
 ├── apps/
 │   ├── web/                          # Next.js 15 App Router frontend
 │   │   ├── src/

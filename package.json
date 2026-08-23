@@ -1,0 +1,11 @@
+{
+  "name": "misc-sales-app",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.0"
+  }
+}

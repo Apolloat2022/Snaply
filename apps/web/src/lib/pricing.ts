@@ -1,7 +1,7 @@
 /**
  * Tax + postal fee calculation shared between the checkout UI and the
- * server-side Square payment route (so the client-displayed total always
- * matches what gets charged).
+ * server-side Stripe checkout-session route (so the client-displayed total
+ * always matches what gets charged).
  */
 
 // Simplified state sales-tax table — swap for a tax API (e.g. TaxJar, Stripe Tax)
@@ -62,6 +62,6 @@ function roundCents(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-export function toSquareAmountCents(dollars: number): number {
+export function toAmountCents(dollars: number): number {
   return Math.round(dollars * 100);
 }

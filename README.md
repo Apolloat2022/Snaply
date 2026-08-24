@@ -7,7 +7,7 @@ Snap a photo, let an AI vision + pricing agent draft the listing, publish, get p
 - **Frontend:** Next.js 15 (App Router), React, Tailwind CSS
 - **AI Engine:** Python FastAPI, async, orchestrating a multimodal LLM (Claude 3.5 Sonnet / GPT-4o) via LangGraph
 - **Database/Storage:** Supabase (Postgres + Blob Storage), Prisma ORM
-- **Payments:** Square Web Payments SDK + Square Payments API
+- **Payments:** Stripe Checkout Sessions (embedded form) + webhook fulfillment
 
 ## Monorepo layout
 
@@ -27,8 +27,10 @@ snaply-app/
 │   │   │   │       ├── notifications/
 │   │   │   │       │   ├── [id]/route.ts          # PATCH: mark one notification read
 │   │   │   │       │   └── read-all/route.ts      # POST: mark all of a seller's notifications read
-│   │   │   │       └── square/
-│   │   │   │           └── create-payment/route.ts  # Square Payments API call (server-only)
+│   │   │   │       ├── checkout/
+│   │   │   │       │   └── create-session/route.ts  # Stripe Checkout Session creation (server-only)
+│   │   │   │       └── webhooks/
+│   │   │   │           └── stripe/route.ts           # fulfillment: order/listing/notification on payment success
 │   │   │   ├── components/
 │   │   │   │   ├── upload/
 │   │   │   │   │   └── ImageDropzone.tsx        # drag-and-drop -> Supabase Storage
@@ -36,7 +38,7 @@ snaply-app/
 │   │   │   │   │   ├── ListingProfileForm.tsx   # auto-generated, editable listing profile
 │   │   │   │   │   └── NewListingFlow.tsx        # client flow: upload -> review -> published
 │   │   │   │   ├── checkout/
-│   │   │   │   │   ├── SquareCheckout.tsx        # ← deliverable 3
+│   │   │   │   │   ├── StripeCheckout.tsx        # ← deliverable 3
 │   │   │   │   │   └── ListingCheckoutSection.tsx  # client wrapper: checkout -> confirmation
 │   │   │   │   └── dashboard/
 │   │   │   │       ├── NotificationList.tsx      # seller notification inbox (mark read / mark all read)
@@ -85,8 +87,8 @@ snaply-app/
 2. That route forwards the request to the FastAPI engine (`POST /api/analyze-item`), keeping the LLM/search API keys off the client.
 3. FastAPI runs the LangGraph pipeline: vision identification → secondary-market pricing search → synthesis into a structured payload (`title`, `description`, `category`, `listing_price`, `estimated_shipping_weight`, plus `condition`/`manufacturer`).
 4. The Next.js frontend receives that JSON and pre-fills `ListingProfileForm.tsx` for a one-click publish.
-5. On checkout, `SquareCheckout.tsx` combines `listing_price` + regional sales tax + a postal fee derived from `estimated_shipping_weight`, requires the buyer to accept the **No Return Policy**, and submits a card nonce + order metadata to `api/square/create-payment`, which calls the Square Payments API server-side.
-6. Once Square confirms the charge, `create-payment/route.ts` flips the `Listing` to `SOLD` and creates the `Order` in one transaction, writes an in-app `Notification` for the seller in that same transaction, then (best-effort, outside the transaction) emails the seller via `lib/email.ts`.
+5. On checkout, `StripeCheckout.tsx` shows `listing_price` + regional sales tax + a postal fee derived from `estimated_shipping_weight`, requires the buyer to accept the **No Return Policy**, then asks `api/checkout/create-session` to create a Stripe Checkout Session (line items + No Return Policy metadata, re-derived server-side) and renders it inline via `@stripe/react-stripe-js`'s embedded checkout form.
+6. Stripe confirms the charge and sends a `checkout.session.completed` webhook to `api/webhooks/stripe/route.ts`, which flips the `Listing` to `SOLD` and creates the `Order` in one transaction, writes an in-app `Notification` for the seller in that same transaction, then (best-effort, outside the transaction) emails the seller via `lib/email.ts`. Fulfillment happens from the webhook, not the client, so a sale is still recorded even if the buyer closes their browser right after paying.
 
 ## Local dev (not run automatically — see below)
 

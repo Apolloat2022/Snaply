@@ -33,12 +33,17 @@ has one) if it doesn't exist yet.
   search silently returns nothing and listings fall back to a $25 placeholder
   price (see `apps/api/app/agents/pricing_graph.py`) — you'll want this
   configured before treating listing prices as real.
-- **Square** — sandbox app + location under
-  developer.squareup.com, then fill in both:
-  - `apps/web/.env.local`: `NEXT_PUBLIC_SQUARE_APPLICATION_ID`,
-    `NEXT_PUBLIC_SQUARE_LOCATION_ID`, `SQUARE_ACCESS_TOKEN`,
-    `SQUARE_LOCATION_ID`
-  - Keep `SQUARE_ENV=sandbox` until you're ready to go live.
+- **Stripe** — from the [Dashboard](https://dashboard.stripe.com/apikeys) (sandbox
+  mode), fill in `apps/web/.env.local`:
+  - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — the `pk_test_...` key.
+  - `STRIPE_SECRET_KEY` — prefer a [restricted key](https://docs.stripe.com/keys/restricted-api-keys)
+    (`rk_test_...`) scoped to Checkout Sessions + webhook read access over the
+    full secret key.
+  - `STRIPE_WEBHOOK_SECRET` — run `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
+    locally and use the `whsec_...` it prints, or the signing secret from a
+    webhook endpoint you create in the Dashboard pointing at
+    `/api/webhooks/stripe` (subscribed to `checkout.session.completed` and
+    `checkout.session.async_payment_succeeded`).
 - **Resend** (optional) — API key for `apps/web/.env.local`
   (`RESEND_API_KEY`, `NOTIFICATIONS_FROM_EMAIL`). Without it, seller
   sale-notification emails just log to the console instead of sending — the
@@ -65,11 +70,15 @@ uvicorn app.main:app --reload
 # frontend (separate terminal)
 cd apps/web
 pnpm dev
+
+# webhook forwarding (separate terminal) — required for a sale to actually
+# get recorded in dev, since fulfillment happens in the webhook handler
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
 Then open `http://localhost:3000` and run through the flow: upload a photo →
 review the AI-generated listing → publish → open the listing link → check
-out with a Square sandbox test card → confirm the notification shows up on
+out with a [Stripe test card](https://docs.stripe.com/testing#cards) → confirm the notification shows up on
 `/dashboard`.
 
 ## 4. Known placeholders to replace
@@ -94,6 +103,3 @@ out with a Square sandbox test card → confirm the notification shows up on
 - No seller-side listing management (edit/archive a listing after publish).
 - No buyer order history page (orders exist in the DB via the `Order`
   model, just nothing renders them yet).
-- No webhook handler for Square payment events — the current flow charges
-  synchronously and updates the DB inline; a webhook would be the more
-  robust way to handle payment-status reconciliation in production.

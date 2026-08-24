@@ -84,9 +84,9 @@ model Listing {
 }
 
 /// One purchase against a Listing. Amounts are stored in cents to match what's
-/// sent to the Square Payments API (see SquareCheckout.tsx / create-payment/route.ts).
+/// sent to the Stripe Checkout Sessions API (see StripeCheckout.tsx / checkout/create-session/route.ts).
 /// No Return Policy acceptance is persisted here as the durable record, in addition
-/// to being stamped into the Square payment's own metadata at charge time.
+/// to being stamped into the Checkout Session's own metadata at creation time.
 model Order {
   id      String  @id @default(cuid())
   listing Listing @relation(fields: [listingId], references: [id])
@@ -102,8 +102,8 @@ model Order {
 
   status OrderStatus @default(PENDING)
 
-  squarePaymentId       String? @unique
-  squareIdempotencyKey  String  @unique
+  stripeCheckoutSessionId String  @unique
+  stripePaymentIntentId   String? @unique
 
   noReturnPolicyAccepted   Boolean   @default(false)
   noReturnPolicyAcceptedAt DateTime?

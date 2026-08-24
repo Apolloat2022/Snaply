@@ -3,6 +3,10 @@ import type { AnalyzeItemResponse } from "@/types/listing";
 
 const FASTAPI_BASE_URL = process.env.FASTAPI_BASE_URL ?? "http://localhost:8000";
 
+// The vision + market-search pipeline routinely takes longer than Vercel's
+// default 10s function timeout; 60 is the max the Hobby plan allows.
+export const maxDuration = 60;
+
 interface AnalyzeItemBody {
   image_url: string;
   seller_region?: string;
@@ -28,10 +32,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "AI pricing engine is unreachable." }, { status: 502 });
   }
 
-  const data = await engineResponse.json();
+  let data: unknown;
+  try {
+    data = await engineResponse.json();
+  } catch {
+    return NextResponse.json({ error: "AI pricing engine returned an invalid response." }, { status: 502 });
+  }
 
   if (!engineResponse.ok) {
-    return NextResponse.json({ error: data.detail ?? "Item analysis failed." }, { status: engineResponse.status });
+    const detail = typeof data === "object" && data !== null && "detail" in data ? (data as { detail?: string }).detail : undefined;
+    return NextResponse.json({ error: detail ?? "Item analysis failed." }, { status: engineResponse.status });
   }
 
   return NextResponse.json(data as AnalyzeItemResponse);

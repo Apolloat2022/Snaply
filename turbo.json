@@ -6,6 +6,7 @@
       "persistent": true
     },
     "build": {
+      "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**"],
       "env": [
         "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
@@ -20,6 +21,9 @@
         "RESEND_API_KEY",
         "NOTIFICATIONS_FROM_EMAIL"
       ]
+    },
+    "@snaply-app/db#build": {
+      "cache": false
     }
   }
 }

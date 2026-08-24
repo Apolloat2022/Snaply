@@ -5,16 +5,18 @@ interface PatchBody {
   read: boolean;
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const body = (await req.json()) as PatchBody;
 
   if (typeof body.read !== "boolean") {
     return NextResponse.json({ error: "read must be a boolean." }, { status: 400 });
   }
 
+  const { id } = await params;
+
   try {
     const notification = await prisma.notification.update({
-      where: { id: params.id },
+      where: { id },
       data: { read: body.read },
     });
     return NextResponse.json({ notification });

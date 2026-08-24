@@ -3,6 +3,10 @@ import NotificationList from "@/components/dashboard/NotificationList";
 import { CURRENT_SELLER_ID } from "@/lib/auth";
 import type { SellerNotification } from "@/types/notification";
 
+// Per-seller notification state — must render per-request, not get baked
+// into the static build.
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const records = await prisma.notification.findMany({
     where: { userId: CURRENT_SELLER_ID },

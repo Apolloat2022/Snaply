@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, ItemCondition as PrismaItemCondition } from "@snaply-app/db";
+import { prisma, ItemCondition as PrismaItemCondition, Prisma } from "@snaply-app/db";
 import type { ComparableListing, ItemCondition } from "@/types/listing";
 
 interface CreateListingBody {
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       estimatedShippingWeightLb: body.estimatedShippingWeightLb,
       regionCode: body.regionCode,
       aiConfidence: body.aiConfidence ?? null,
-      comparables: body.comparables ?? undefined,
+      comparables: (body.comparables as Prisma.InputJsonValue | undefined) ?? undefined,
       status: "ACTIVE",
     },
   });

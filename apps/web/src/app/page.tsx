@@ -1,6 +1,10 @@
 import NewListingFlow from "@/components/listing/NewListingFlow";
 import DashboardLink from "@/components/dashboard/DashboardLink";
 
+// Renders DashboardLink, which queries the live unread-notification count —
+// must render per-request, not get baked into the static build.
+export const dynamic = "force-dynamic";
+
 export default function HomePage() {
   return (
     <main className="mx-auto max-w-xl px-4 py-12">

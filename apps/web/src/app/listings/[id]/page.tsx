@@ -6,11 +6,12 @@ import { CURRENT_BUYER_ID } from "@/lib/auth";
 import type { Listing } from "@/types/listing";
 
 interface ListingPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function ListingPage({ params }: ListingPageProps) {
-  const record = await prisma.listing.findUnique({ where: { id: params.id } });
+  const { id } = await params;
+  const record = await prisma.listing.findUnique({ where: { id } });
 
   if (!record || record.status !== "ACTIVE") {
     notFound();

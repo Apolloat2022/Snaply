@@ -10,7 +10,7 @@ app = FastAPI(title="Snaply — AI Pricing Engine", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=settings.allowed_origins_list,
     allow_methods=["POST", "GET"],
     allow_headers=["*"],
 )

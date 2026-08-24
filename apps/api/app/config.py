@@ -18,8 +18,16 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_service_role_key: str = ""
 
-    # CORS
-    allowed_origins: list[str] = ["http://localhost:3000"]
+    # CORS — comma-separated origins (e.g. "https://a.com,https://b.com").
+    # Deliberately a plain string, not a list: pydantic-settings parses
+    # list-typed env vars as strict JSON, which is easy to get wrong typing
+    # brackets/quotes into a dashboard text field, and fails closed by
+    # crashing the whole app on boot rather than just rejecting CORS.
+    allowed_origins: str = "http://localhost:3000"
+
+    @property
+    def allowed_origins_list(self) -> list[str]:
+        return [origin.strip() for origin in self.allowed_origins.split(",") if origin.strip()]
 
 
 @lru_cache

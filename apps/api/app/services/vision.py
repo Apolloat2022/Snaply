@@ -1,67 +1,74 @@
 """Multimodal LLM call: image URL in, structured item identification out."""
 from __future__ import annotations
 
-import anthropic
+import json
+
+import httpx
+from google import genai
+from google.genai import types
 
 from app.config import get_settings
 from app.models.schemas import IdentifiedItem
 
-_IDENTIFY_TOOL = {
-    "name": "record_identification",
-    "description": "Record the identified item, manufacturer, category, and visual condition assessment.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "item_name": {"type": "string"},
-            "manufacturer": {"type": ["string", "null"]},
-            "category": {"type": "string", "description": "e.g. Electronics, Furniture, Apparel, Collectibles"},
-            "condition": {
-                "type": "string",
-                "enum": ["new", "like_new", "good", "fair", "poor"],
-            },
-            "condition_notes": {
-                "type": "string",
-                "description": "Visible wear, damage, missing parts, or reasons for the condition grade",
-            },
-            "distinguishing_features": {
-                "type": "array",
-                "items": {"type": "string"},
-                "description": "Model numbers, colorways, materials, or other details useful for pricing search",
-            },
+_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "item_name": {"type": "string"},
+        "manufacturer": {"type": "string", "nullable": True},
+        "category": {"type": "string", "description": "e.g. Electronics, Furniture, Apparel, Collectibles"},
+        "condition": {
+            "type": "string",
+            "enum": ["new", "like_new", "good", "fair", "poor"],
         },
-        "required": ["item_name", "category", "condition", "condition_notes"],
+        "condition_notes": {
+            "type": "string",
+            "description": "Visible wear, damage, missing parts, or reasons for the condition grade",
+        },
+        "distinguishing_features": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Model numbers, colorways, materials, or other details useful for pricing search",
+        },
     },
+    "required": ["item_name", "category", "condition", "condition_notes"],
 }
 
 _SYSTEM_PROMPT = (
     "You are a resale marketplace intake specialist. Given a photo of an item a seller wants to list, "
     "identify exactly what it is, who made it, and grade its visual condition as strictly as a "
     "professional reseller would. Only report what is visually verifiable in the image — do not guess "
-    "specs you cannot see. Always respond by calling record_identification."
+    "specs you cannot see. Respond with a JSON object matching the provided schema."
 )
 
 
 async def identify_item(image_url: str) -> IdentifiedItem:
     settings = get_settings()
-    client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+    client = genai.Client(api_key=settings.gemini_api_key)
 
-    response = await client.messages.create(
+    # Fetch the image bytes so Gemini can receive it as inline data
+    async with httpx.AsyncClient(timeout=15.0) as http:
+        img_resp = await http.get(image_url)
+        img_resp.raise_for_status()
+        image_bytes = img_resp.content
+        content_type = img_resp.headers.get("content-type", "image/jpeg").split(";")[0]
+
+    response = await client.aio.models.generate_content(
         model=settings.vision_model,
-        max_tokens=1024,
-        system=_SYSTEM_PROMPT,
-        tools=[_IDENTIFY_TOOL],
-        tool_choice={"type": "tool", "name": "record_identification"},
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "image", "source": {"type": "url", "url": image_url}},
-                    {"type": "text", "text": "Identify this item and grade its condition."},
+        contents=[
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_bytes(data=image_bytes, mime_type=content_type),
+                    types.Part.from_text(text="Identify this item and grade its condition."),
                 ],
-            }
+            )
         ],
+        config=types.GenerateContentConfig(
+            system_instruction=_SYSTEM_PROMPT,
+            response_mime_type="application/json",
+            response_schema=_RESPONSE_SCHEMA,
+        ),
     )
 
-    tool_use = next(block for block in response.content if block.type == "tool_use")
-    payload = tool_use.input
+    payload = json.loads(response.text)
     return IdentifiedItem.model_validate(payload)

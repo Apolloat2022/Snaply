@@ -6,9 +6,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    # Multimodal LLM
-    anthropic_api_key: str = ""
-    vision_model: str = "claude-sonnet-5"
+    # Multimodal LLM (Google Gemini)
+    gemini_api_key: str = ""
+    vision_model: str = "gemini-2.0-flash"
 
     # Secondary-market search tool (e.g. Tavily, SerpAPI, or a custom scraper service)
     market_search_api_key: str = ""

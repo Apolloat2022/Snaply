@@ -46,11 +46,17 @@ async def identify_item(image_url: str) -> IdentifiedItem:
     client = genai.Client(api_key=settings.gemini_api_key)
 
     # Fetch the image bytes so Gemini can receive it as inline data
-    async with httpx.AsyncClient(timeout=15.0) as http:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "image/*,*/*;q=0.8",
+    }
+    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True, headers=headers) as http:
         img_resp = await http.get(image_url)
         img_resp.raise_for_status()
         image_bytes = img_resp.content
         content_type = img_resp.headers.get("content-type", "image/jpeg").split(";")[0]
+        if not content_type.startswith("image/"):
+            content_type = "image/jpeg"
 
     response = await client.aio.models.generate_content(
         model=settings.vision_model,

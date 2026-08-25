@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     # Multimodal LLM (Google Gemini)
     gemini_api_key: str = ""
-    vision_model: str = "gemini-2.0-flash"
+    vision_model: str = "gemini-3.6-flash"
 
     # Secondary-market search tool (e.g. Tavily, SerpAPI, or a custom scraper service)
     market_search_api_key: str = ""

@@ -94,12 +94,22 @@ export default function ListingProfileForm({
         }),
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error ?? "Failed to publish listing.");
+      let data: { error?: string; listing?: Listing } | null = null;
+      try {
+        data = await response.json();
+      } catch {
+        // Response was not JSON (e.g. 500 HTML or timeout)
       }
 
-      onPublished(data.listing as Listing);
+      if (!response.ok) {
+        throw new Error(data?.error ?? `Server error (${response.status}) while publishing listing.`);
+      }
+
+      if (!data?.listing) {
+        throw new Error("Invalid response received from server.");
+      }
+
+      onPublished(data.listing);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Failed to publish listing.");
     } finally {

@@ -18,35 +18,57 @@ interface CreateListingBody {
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as CreateListingBody;
+  try {
+    const body = (await req.json()) as CreateListingBody;
 
-  const missing = ["sellerId", "imageUrl", "title", "description", "category", "condition", "regionCode"].filter(
-    (field) => !body[field as keyof CreateListingBody]
-  );
-  if (missing.length > 0) {
-    return NextResponse.json({ error: `Missing required fields: ${missing.join(", ")}` }, { status: 400 });
+    const missing = ["sellerId", "imageUrl", "title", "description", "category", "condition", "regionCode"].filter(
+      (field) => !body[field as keyof CreateListingBody]
+    );
+    if (missing.length > 0) {
+      return NextResponse.json({ error: `Missing required fields: ${missing.join(", ")}` }, { status: 400 });
+    }
+    if (!(body.listingPrice > 0) || !(body.estimatedShippingWeightLb > 0)) {
+      return NextResponse.json({ error: "listingPrice and estimatedShippingWeightLb must be positive." }, { status: 400 });
+    }
+
+    // Ensure the seller user exists in Postgres so foreign key constraint is satisfied
+    await prisma.user.upsert({
+      where: { id: body.sellerId },
+      update: {},
+      create: {
+        id: body.sellerId,
+        email: `${body.sellerId}@snaply-app.example`,
+        displayName: "Demo Seller",
+        regionCode: body.regionCode,
+      },
+    });
+
+    const conditionValue = (body.condition.toUpperCase().replace("-", "_")) as PrismaItemCondition;
+
+    const listing = await prisma.listing.create({
+      data: {
+        sellerId: body.sellerId,
+        imageUrl: body.imageUrl,
+        title: body.title,
+        description: body.description,
+        category: body.category,
+        manufacturer: body.manufacturer ?? null,
+        condition: conditionValue,
+        listingPrice: body.listingPrice,
+        estimatedShippingWeightLb: body.estimatedShippingWeightLb,
+        regionCode: body.regionCode,
+        aiConfidence: body.aiConfidence ?? null,
+        comparables: (body.comparables as Prisma.InputJsonValue | undefined) ?? undefined,
+        status: "ACTIVE",
+      },
+    });
+
+    return NextResponse.json({ listing }, { status: 201 });
+  } catch (error) {
+    console.error("Failed to create listing:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to create listing." },
+      { status: 500 }
+    );
   }
-  if (!(body.listingPrice > 0) || !(body.estimatedShippingWeightLb > 0)) {
-    return NextResponse.json({ error: "listingPrice and estimatedShippingWeightLb must be positive." }, { status: 400 });
-  }
-
-  const listing = await prisma.listing.create({
-    data: {
-      sellerId: body.sellerId,
-      imageUrl: body.imageUrl,
-      title: body.title,
-      description: body.description,
-      category: body.category,
-      manufacturer: body.manufacturer ?? null,
-      condition: body.condition.toUpperCase() as PrismaItemCondition,
-      listingPrice: body.listingPrice,
-      estimatedShippingWeightLb: body.estimatedShippingWeightLb,
-      regionCode: body.regionCode,
-      aiConfidence: body.aiConfidence ?? null,
-      comparables: (body.comparables as Prisma.InputJsonValue | undefined) ?? undefined,
-      status: "ACTIVE",
-    },
-  });
-
-  return NextResponse.json({ listing }, { status: 201 });
 }

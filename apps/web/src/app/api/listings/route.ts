@@ -31,23 +31,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "listingPrice and estimatedShippingWeightLb must be positive." }, { status: 400 });
     }
 
-    // Ensure the seller user exists in Postgres so foreign key constraint is satisfied
-    await prisma.user.upsert({
-      where: { id: body.sellerId },
-      update: {},
-      create: {
-        id: body.sellerId,
-        email: `${body.sellerId}@snaply-app.example`,
-        displayName: "Demo Seller",
-        regionCode: body.regionCode,
-      },
-    });
-
     const conditionValue = (body.condition.toUpperCase().replace("-", "_")) as PrismaItemCondition;
 
     const listing = await prisma.listing.create({
       data: {
-        sellerId: body.sellerId,
+        seller: {
+          connectOrCreate: {
+            where: { id: body.sellerId },
+            create: {
+              id: body.sellerId,
+              email: `${body.sellerId}@snaply-app.example`,
+              displayName: "Demo Seller",
+              regionCode: body.regionCode,
+            },
+          },
+        },
         imageUrl: body.imageUrl,
         title: body.title,
         description: body.description,
